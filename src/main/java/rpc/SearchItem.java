@@ -1,7 +1,7 @@
 package rpc;
 
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -9,7 +9,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.json.JSONArray;
-import org.json.JSONObject;
+
+import entity.Item;
+import external.GitHubClient;
 
 /**
  * Servlet implementation class SearchItem
@@ -29,14 +31,16 @@ public class SearchItem extends HttpServlet {
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		response.setContentType("application/json");
-		PrintWriter writer = response.getWriter();
-		String user = request.getParameter("username");
-		if (user != null) {
-			JSONArray array = new JSONArray();
-			array.put(new JSONObject().put("username", user));
-			writer.print(array);
+		double lat = Double.parseDouble(request.getParameter("lat"));
+		double lon = Double.parseDouble(request.getParameter("lon"));
+		
+		GitHubClient client = new GitHubClient();
+		List<Item> itemList = client.search(lat, lon, null);
+		JSONArray array = new JSONArray();
+		for (Item item : itemList) {
+			array.put(item.toJsonObject());
 		}
+		RpcHelper.writeJsonArray(response, array);	
 	}
 
 	/**
